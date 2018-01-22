@@ -9,6 +9,7 @@ import sys
 from struct import unpack, pack
 import os
 import time
+import subprocess
 
 def get_c_string(data, offset):
     out = []
@@ -135,7 +136,22 @@ def main(argv):
     #"encrypt" -> Big Air Quotes
     for i in xrange(text_size):
         packed[text_offset + i] ^= 0xa5
-    
+
+    #for i in xrange(0x100):
+    #    packed[0x75254 + i] = 0xcc 
+    MAGIC_OFFSET = 0x75254
+    subprocess.check_output(["nasm", "load.nasm"])
+
+    with open("load", "rb") as f:
+        loader = bytearray(f.read())
+
+    packed[MAGIC_OFFSET:MAGIC_OFFSET+len(loader)] = loader
+
+
+    #This will probably not be right.
+    packed[24:24+4] = bytearray(pack("I", MAGIC_OFFSET + 0x8048000))
+    #.text size + shellcode = 0x30547
+
     with open(argv[1] + ".packed", "wb") as f:
         f.write(packed)
 
