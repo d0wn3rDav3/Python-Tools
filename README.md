@@ -1,5 +1,15 @@
 # Python-Tools
 
+Assorted Python tooling for RE/VR work. Currently three tools:
+
+| Tool | What it does |
+|---|---|
+| `packer.py` + `load.nasm` | ELF packer for static non-PIE x86 binaries (32/64-bit) |
+| `adbWebView.py` | Open a URL in a WebView on an ADB-connected Android device and capture logcat |
+| `pe_parse.py` | Dump PE headers, sections, and imports to a text file |
+
+---
+
 ## ELF packer (`packer.py` + `load.nasm`)
 
 Packs static non-PIE x86 ELF executables (32- and 64-bit). XOR-encrypts the
@@ -45,3 +55,48 @@ caches; the stubs are only rebuilt when `load.nasm` changes).
 $ ./test_packer.sh   # builds static targets (64-bit, 32-bit if multilib),
                      # packs, and compares stdout + exit codes
 ```
+
+---
+
+## adbWebView.py
+
+Opens a URL in a WebView context on a device connected over ADB and captures
+the surrounding logcat output — used to verify that websites are handled
+appropriately within a WebView.
+
+```
+$ adb start-server
+$ python3 adbWebView.py
+```
+
+Prompts for the device (if several are attached) and the URL, prints the
+target's make/model/serial/OS version (via `getprop`), force-stops any
+running Chrome, launches the URL as a VIEW intent, and writes the last 1000
+logcat lines to `logcat_output_<timestamp>.txt` in the current directory.
+
+Requires: the `adb` binary on PATH, a running ADB server, USB/network-debug
+enabled on the device, and `pure-python-adb` (`pip install pure-python-adb`).
+
+---
+
+## pe_parse.py
+
+Dumps PE metadata to `binary_summary.txt`: DOS header, the first 9 section
+headers (with VA/virtual size/raw size), and the import table (DLL name,
+function name, IAT address per entry).
+
+```
+$ python2 pe_parse.py ./target.exe
+$ cat binary_summary.txt
+```
+
+Requires: Python 2 and the `pefile` module. (Python 2 only — prints
+statements and py2 `print` semantics; not yet ported to Python 3.)
+
+---
+
+## Repo docs
+
+- `PLAN.md` — active plan / design record for the packer rework
+- `DEVLOG.md` — chronological findings trail (dead ends included)
+- `test_packer.sh` — packer regression check (see above)
