@@ -86,12 +86,12 @@ headers (with VA/virtual size/raw size), and the import table (DLL name,
 function name, IAT address per entry).
 
 ```
-$ python2 pe_parse.py ./target.exe
+$ pip install --user --break-system-packages pefile   # Debian 13 and later
+$ python3 pe_parse.py ./target.exe
 $ cat binary_summary.txt
 ```
 
-Requires: Python 2 and the `pefile` module. (Python 2 only — prints
-statements and py2 `print` semantics; not yet ported to Python 3.)
+Requires: Python 3 and the `pefile` module.
 
 ---
 

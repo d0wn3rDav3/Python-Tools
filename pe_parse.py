@@ -1,37 +1,35 @@
-#!/usr/bin/python2
+#!/usr/bin/env python3
 
-import pefile
 import mmap
 import sys
 
-exe = sys.argv[1]
+import pefile
 
-fd = open(exe,'rb')
+if len(sys.argv) != 2:
+    sys.exit("Usage: pe_parse.py <pe-file>")
 
-pe_data = mmap.mmap(fd.fileno(), 0, access=mmap.ACCESS_READ)
+with open(sys.argv[1], "rb") as fd:
+    pe_data = mmap.mmap(fd.fileno(), 0, access=mmap.ACCESS_READ)
+    pe = pefile.PE(data=pe_data)
 
-pe = pefile.PE(data=pe_data)
+    with open("binary_summary.txt", "wt") as f:
+        print("PE Metadata for %s\n" % sys.argv[1], file=f)
 
-with open('binary_summary.txt', 'wt') as f:
-    sys.stdout = f
-    
-    print 'PE Metadata for %s\r\n' % sys.argv[1]
-    print pe.DOS_HEADER
-    print '\r\n'
-    
-    for section in pe.sections[:9]:
-        print section
-        print "\t" + section.Name.decode('utf-8')
-        print "\tVirtual Address: " + hex(section.VirtualAddress)
-        print "\tVirtual Size: " + hex(section.Misc_VirtualSize)
-        print "\tRaw Size: " + hex(section.SizeOfRawData)
-        print '\r\n'
+        print(pe.DOS_HEADER, file=f)
+        print("\n", file=f)
 
-    for entry in pe.DIRECTORY_ENTRY_IMPORT:
-        dll_names = entry.dll.decode('utf-8')
+        for section in pe.sections[:9]:
+            print(section, file=f)
+            print("\t" + section.Name.decode("utf-8", "replace").rstrip("\x00"), file=f)
+            print("\tVirtual Address: " + hex(section.VirtualAddress), file=f)
+            print("\tVirtual Size: " + hex(section.Misc_VirtualSize), file=f)
+            print("\tRaw Size: " + hex(section.SizeOfRawData), file=f)
+            print("\n", file=f)
 
-        for dll_name in dll_names:
-            print "[*] %s imports" % dll_names
+        for entry in getattr(pe, "DIRECTORY_ENTRY_IMPORT", []):
+            dll = entry.dll.decode("utf-8")
+            print("[*] %s imports" % dll, file=f)
             for func in entry.imports:
-                print '\t%s at 0x%08x' % (func.name.decode('utf-8'), func.address)
-f.close()
+                name = func.name.decode("utf-8") if func.name \
+                    else "<ordinal %d>" % func.ordinal
+                print("\t%s at 0x%08x" % (name, func.address), file=f)
