@@ -8,6 +8,21 @@ Assorted Python tooling for RE/VR work. Currently three tools:
 | `adbWebView.py` | Open a URL in a WebView on an ADB-connected Android device and capture logcat |
 | `pe_parse.py` | Dump PE headers, sections, and imports to a text file |
 
+## Setup
+
+Third-party Python dependencies live in one virtualenv for the whole repo
+(`pefile`, `pure-python-adb`; Debian 13 and later block plain
+`pip install --user`, see PEP 668):
+
+```
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+```
+
+Then run the scripts with `.venv/bin/python <script>` (or activate the venv).
+`packer.py` and `test_packer.sh` need no venv — pure stdlib plus `nasm`/`gcc`
+on PATH.
+
 ---
 
 ## ELF packer (`packer.py` + `load.nasm`)
@@ -75,7 +90,7 @@ running Chrome, launches the URL as a VIEW intent, and writes the last 1000
 logcat lines to `logcat_output_<timestamp>.txt` in the current directory.
 
 Requires: the `adb` binary on PATH, a running ADB server, USB/network-debug
-enabled on the device, and `pure-python-adb` (`pip install pure-python-adb`).
+enabled on the device, and `pure-python-adb` (repo venv, see Setup).
 
 ---
 
@@ -86,12 +101,11 @@ headers (with VA/virtual size/raw size), and the import table (DLL name,
 function name, IAT address per entry).
 
 ```
-$ pip install --user --break-system-packages pefile   # Debian 13 and later
 $ python3 pe_parse.py ./target.exe
 $ cat binary_summary.txt
 ```
 
-Requires: Python 3 and the `pefile` module.
+Requires: Python 3 and the `pefile` module (repo venv, see Setup).
 
 ---
 

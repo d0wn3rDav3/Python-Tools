@@ -1,0 +1,2 @@
+pefile==2024.8.26
+pure-python-adb==0.3.0.dev0
